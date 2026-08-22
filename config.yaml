@@ -1,0 +1,48 @@
+seed: 42
+
+data:
+  input_csv: null
+  date_col: date
+  sku_col: sku
+  demand_col: demand
+  price_col: price
+  promo_col: promo
+  synthetic_skus: 30
+  synthetic_days: 500
+
+split:
+  validation_days: 70
+  test_days: 70
+
+features:
+  lags: [1, 7, 14, 28]
+  rolling_windows: [7, 14, 28]
+
+models:
+  random_forest:
+    n_estimators: 220
+    max_depth: 16
+    min_samples_leaf: 2
+  hist_gradient_boosting:
+    max_iter: 260
+    learning_rate: 0.06
+    max_leaf_nodes: 31
+  xgboost:
+    n_estimators: 450
+    max_depth: 7
+    learning_rate: 0.05
+    subsample: 0.85
+    colsample_bytree: 0.85
+    reg_alpha: 0.05
+    reg_lambda: 1.0
+
+inventory:
+  lead_time_days: 3
+  initial_stock_days: 8
+  holding_cost: 1.0
+  stockout_cost: 8.0
+  ordering_cost: 0.10
+  z_grid: [0.0, 0.5, 0.84, 1.04, 1.28, 1.64, 1.96, 2.33]
+
+statistics:
+  bootstrap_samples: 500
