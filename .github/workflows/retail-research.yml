@@ -1,0 +1,43 @@
+name: Rebuild retail data and run research
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  retail-experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt openpyxl
+      - name: Rebuild UCI retail panel
+        run: python scripts/rebuild_retail.py
+      - name: Create real-data configuration
+        run: |
+          python - <<'PY'
+          import yaml
+          with open('config.yaml') as f:
+              cfg = yaml.safe_load(f)
+          cfg['data']['input_csv'] = 'data/real_retail_daily.csv'
+          with open('config.real.yaml', 'w') as f:
+              yaml.safe_dump(cfg, f)
+          PY
+      - name: Run forecasting and provisional inventory analysis
+        run: python experiment.py --config config.real.yaml
+      - name: Save downloadable results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: retail-research-results
+          path: |
+            data/real_retail_daily.csv
+            config.real.yaml
+            outputs/
+          if-no-files-found: warn
